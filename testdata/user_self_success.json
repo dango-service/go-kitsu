@@ -1,0 +1,15 @@
+{
+  "data": [
+    {
+      "id": "42",
+      "type": "users",
+      "attributes": {
+        "name": "SpikeSpiegel",
+        "slug": "spikespiegel",
+        "avatar": {
+          "original": "https://media.kitsu.io/users/avatars/42/original.png"
+        }
+      }
+    }
+  ]
+}
