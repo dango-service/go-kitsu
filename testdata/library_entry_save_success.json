@@ -1,0 +1,28 @@
+{
+  "data": {
+    "id": "12345",
+    "type": "libraryEntries",
+    "attributes": {
+      "status": "current",
+      "progress": 13,
+      "ratingTwenty": 18,
+      "reconsuming": false,
+      "reconsumeCount": 0,
+      "updatedAt": "2026-11-04T12:05:00.000Z"
+    },
+    "relationships": {
+      "anime": {
+        "data": {
+          "type": "anime",
+          "id": "1"
+        }
+      },
+      "user": {
+        "data": {
+          "type": "users",
+          "id": "42"
+        }
+      }
+    }
+  }
+}

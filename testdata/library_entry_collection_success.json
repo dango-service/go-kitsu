@@ -1,0 +1,43 @@
+{
+  "data": [
+    {
+      "id": "12345",
+      "type": "libraryEntries",
+      "attributes": {
+        "status": "current",
+        "progress": 12,
+        "ratingTwenty": 18,
+        "updatedAt": "2026-11-04T12:00:00.000Z"
+      },
+      "relationships": {
+        "anime": {
+          "data": {
+            "type": "anime",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "12346",
+      "type": "libraryEntries",
+      "attributes": {
+        "status": "completed",
+        "progress": 26,
+        "ratingTwenty": 20,
+        "updatedAt": "2026-11-04T13:00:00.000Z"
+      },
+      "relationships": {
+        "anime": {
+          "data": {
+            "type": "anime",
+            "id": "2"
+          }
+        }
+      }
+    }
+  ],
+  "meta": {
+    "count": 2
+  }
+}
