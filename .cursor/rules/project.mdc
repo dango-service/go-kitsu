@@ -1,0 +1,15 @@
+---
+description: go-kitsu project coding guidelines and rules
+globs: **/*
+---
+
+Refer to [AGENTS.md](../../AGENTS.md) as the SINGLE SOURCE OF TRUTH for all rules and standards.
+
+Key constraints:
+- Pure Go client library for the Kitsu.io JSON:API (v3 / edge).
+- Do not import Dango or external application logic.
+- Follow Conventional Commits format for git operations.
+- Ensure all public functions accept `context.Context`.
+- Wrap errors with `fmt.Errorf("...: %w", err)`.
+- Use `net/http/httptest` for all network tests.
+- Bound streaming decoding via `io.LimitReader`.
