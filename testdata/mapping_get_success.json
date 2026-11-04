@@ -1,0 +1,23 @@
+{
+  "data": [
+    {
+      "id": "100",
+      "type": "mappings",
+      "attributes": {
+        "externalSite": "myanimelist/anime",
+        "externalId": "1"
+      },
+      "relationships": {
+        "item": {
+          "data": {
+            "type": "anime",
+            "id": "1"
+          }
+        }
+      }
+    }
+  ],
+  "meta": {
+    "count": 1
+  }
+}

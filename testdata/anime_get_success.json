@@ -1,0 +1,23 @@
+{
+  "data": {
+    "id": "1",
+    "type": "anime",
+    "attributes": {
+      "slug": "cowboy-bebop",
+      "synopsis": "In the year 2071, humanity has colonized several of the planets and moons...",
+      "canonicalTitle": "Cowboy Bebop",
+      "titles": {
+        "en": "Cowboy Bebop",
+        "en_jp": "Cowboy Bebop",
+        "ja_jp": "カウボーイビバップ"
+      },
+      "subtype": "TV",
+      "status": "finished",
+      "episodeCount": 26,
+      "episodeLength": 25,
+      "startDate": "1998-04-03",
+      "endDate": "1999-04-24",
+      "ageRating": "R"
+    }
+  }
+}

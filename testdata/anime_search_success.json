@@ -1,0 +1,45 @@
+{
+  "data": [
+    {
+      "id": "1",
+      "type": "anime",
+      "attributes": {
+        "slug": "cowboy-bebop",
+        "synopsis": "In the year 2071...",
+        "canonicalTitle": "Cowboy Bebop",
+        "titles": {
+          "en": "Cowboy Bebop",
+          "en_jp": "Cowboy Bebop"
+        },
+        "subtype": "TV",
+        "status": "finished",
+        "episodeCount": 26,
+        "episodeLength": 25,
+        "startDate": "1998-04-03",
+        "endDate": "1999-04-24"
+      }
+    },
+    {
+      "id": "2",
+      "type": "anime",
+      "attributes": {
+        "slug": "cowboy-bebop-tengoku-no-tobira",
+        "synopsis": "Another day, another bounty...",
+        "canonicalTitle": "Cowboy Bebop: Knockin' on Heaven's Door",
+        "titles": {
+          "en": "Cowboy Bebop: The Movie",
+          "en_jp": "Cowboy Bebop: Knockin' on Heaven's Door"
+        },
+        "subtype": "movie",
+        "status": "finished",
+        "episodeCount": 1,
+        "episodeLength": 115,
+        "startDate": "2001-09-01",
+        "endDate": "2001-09-01"
+      }
+    }
+  ],
+  "meta": {
+    "count": 2
+  }
+}
