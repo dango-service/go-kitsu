@@ -29,6 +29,7 @@ type Client struct {
 
 	// Services
 	Anime        *AnimeService
+	Manga        *MangaService
 	LibraryEntry *LibraryEntryService
 	User         *UserService
 	Mapping      *MappingService
@@ -81,6 +82,7 @@ func NewClient(httpClient *http.Client, opts ...ClientOption) *Client {
 	}
 
 	c.Anime = &AnimeService{client: c}
+	c.Manga = &MangaService{client: c}
 	c.LibraryEntry = &LibraryEntryService{client: c}
 	c.User = &UserService{client: c}
 	c.Mapping = &MappingService{client: c}

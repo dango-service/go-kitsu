@@ -21,7 +21,7 @@ const (
 	LibraryStatusDropped   LibraryStatus = "dropped"
 )
 
-// LibraryEntry represents a user's tracking entry for an anime in Kitsu.
+// LibraryEntry represents a user's tracking entry for an anime or manga in Kitsu.
 type LibraryEntry struct {
 	ID             string        `json:"id"`
 	Status         LibraryStatus `json:"status"`
@@ -31,14 +31,17 @@ type LibraryEntry struct {
 	ReconsumeCount int           `json:"reconsumeCount"`
 	UpdatedAt      time.Time     `json:"updatedAt"`
 	AnimeID        string        `json:"animeId,omitempty"`
+	MangaID        string        `json:"mangaId,omitempty"`
 	UserID         string        `json:"userId,omitempty"`
 	Anime          *Anime        `json:"anime,omitempty"`
+	Manga          *Manga        `json:"manga,omitempty"`
 }
 
 // SaveLibraryEntryInput specifies parameters to create or update a library entry.
 type SaveLibraryEntryInput struct {
 	ID           string         `json:"id,omitempty"`
-	AnimeID      string         `json:"animeId"`
+	AnimeID      string         `json:"animeId,omitempty"`
+	MangaID      string         `json:"mangaId,omitempty"`
 	UserID       string         `json:"userId"`
 	Status       *LibraryStatus `json:"status,omitempty"`
 	Progress     *int           `json:"progress,omitempty"`
@@ -65,6 +68,16 @@ func unmarshalLibraryEntry(res jsonAPIResource, included []jsonAPIResource) (*Li
 		}
 	}
 
+	if mangaRel, ok := res.Relationships["manga"]; ok && len(mangaRel.Data) > 0 {
+		var ref struct {
+			ID   string `json:"id"`
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(mangaRel.Data, &ref); err == nil {
+			entry.MangaID = ref.ID
+		}
+	}
+
 	if userRel, ok := res.Relationships["user"]; ok && len(userRel.Data) > 0 {
 		var ref struct {
 			ID   string `json:"id"`
@@ -81,6 +94,18 @@ func unmarshalLibraryEntry(res jsonAPIResource, included []jsonAPIResource) (*Li
 				anime, err := unmarshalAnime(inc)
 				if err == nil {
 					entry.Anime = anime
+				}
+				break
+			}
+		}
+	}
+
+	if entry.MangaID != "" && len(included) > 0 {
+		for _, inc := range included {
+			if inc.Type == "manga" && inc.ID == entry.MangaID {
+				manga, err := unmarshalManga(inc)
+				if err == nil {
+					entry.Manga = manga
 				}
 				break
 			}
@@ -118,6 +143,44 @@ func (s *LibraryEntryService) GetEntry(ctx context.Context, userID, animeID stri
 
 	if len(resources) == 0 {
 		return nil, resp, fmt.Errorf("kitsu: get entry (user %s, anime %s): %w", userID, animeID, ErrNotFound)
+	}
+
+	entry, err := unmarshalLibraryEntry(resources[0], doc.Included)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return entry, resp, nil
+}
+
+// GetEntryByManga retrieves a user's library entry for a specific manga or comic.
+func (s *LibraryEntryService) GetEntryByManga(ctx context.Context, userID, mangaID string) (*LibraryEntry, *Response, error) {
+	if userID == "" || mangaID == "" {
+		return nil, nil, errors.New("kitsu: userID and mangaID must not be empty")
+	}
+
+	v := url.Values{}
+	v.Set("filter[userId]", userID)
+	v.Set("filter[mangaId]", mangaID)
+	v.Set("include", "manga")
+
+	path := "/library-entries?" + v.Encode()
+	doc, resp, err := s.client.doRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, resp, fmt.Errorf("kitsu: get manga entry (user %s, manga %s): %w", userID, mangaID, err)
+	}
+
+	if doc == nil || len(doc.Data) == 0 {
+		return nil, resp, fmt.Errorf("kitsu: get manga entry (user %s, manga %s): %w", userID, mangaID, ErrNotFound)
+	}
+
+	var resources []jsonAPIResource
+	if err := json.Unmarshal(doc.Data, &resources); err != nil {
+		return nil, resp, fmt.Errorf("kitsu: unmarshal library entry resources: %w", err)
+	}
+
+	if len(resources) == 0 {
+		return nil, resp, fmt.Errorf("kitsu: get manga entry (user %s, manga %s): %w", userID, mangaID, ErrNotFound)
 	}
 
 	entry, err := unmarshalLibraryEntry(resources[0], doc.Included)
@@ -173,15 +236,22 @@ func (s *LibraryEntryService) GetCollection(ctx context.Context, userID string, 
 	return entries, resp, nil
 }
 
-// SaveEntry creates or updates an anime entry in the user's library.
+// SaveEntry creates or updates an anime or manga entry in the user's library.
 func (s *LibraryEntryService) SaveEntry(ctx context.Context, input SaveLibraryEntryInput) (*LibraryEntry, *Response, error) {
 	targetID := input.ID
 
 	// If entry ID is omitted, check if an existing entry exists to update idempotently
 	if targetID == "" {
-		existing, _, err := s.GetEntry(ctx, input.UserID, input.AnimeID)
-		if err == nil && existing != nil {
-			targetID = existing.ID
+		if input.MangaID != "" {
+			existing, _, err := s.GetEntryByManga(ctx, input.UserID, input.MangaID)
+			if err == nil && existing != nil {
+				targetID = existing.ID
+			}
+		} else if input.AnimeID != "" {
+			existing, _, err := s.GetEntry(ctx, input.UserID, input.AnimeID)
+			if err == nil && existing != nil {
+				targetID = existing.ID
+			}
 		}
 	}
 
@@ -201,6 +271,15 @@ func (s *LibraryEntryService) SaveEntry(ctx context.Context, input SaveLibraryEn
 
 	var method, path string
 	var payload any
+
+	mediaRelKey := "anime"
+	mediaType := "anime"
+	mediaID := input.AnimeID
+	if input.MangaID != "" {
+		mediaRelKey = "manga"
+		mediaType = "manga"
+		mediaID = input.MangaID
+	}
 
 	if targetID != "" {
 		// PATCH existing entry
@@ -222,10 +301,10 @@ func (s *LibraryEntryService) SaveEntry(ctx context.Context, input SaveLibraryEn
 				"type":       "libraryEntries",
 				"attributes": attributes,
 				"relationships": map[string]any{
-					"anime": map[string]any{
+					mediaRelKey: map[string]any{
 						"data": map[string]string{
-							"type": "anime",
-							"id":   input.AnimeID,
+							"type": mediaType,
+							"id":   mediaID,
 						},
 					},
 					"user": map[string]any{
@@ -241,11 +320,11 @@ func (s *LibraryEntryService) SaveEntry(ctx context.Context, input SaveLibraryEn
 
 	doc, resp, err := s.client.doRequestWithJSON(ctx, method, path, payload)
 	if err != nil {
-		return nil, resp, fmt.Errorf("kitsu: save entry for anime %s: %w", input.AnimeID, err)
+		return nil, resp, fmt.Errorf("kitsu: save entry for %s %s: %w", mediaType, mediaID, err)
 	}
 
 	if doc == nil || len(doc.Data) == 0 {
-		return nil, resp, fmt.Errorf("kitsu: save entry for anime %s: unexpected empty result", input.AnimeID)
+		return nil, resp, fmt.Errorf("kitsu: save entry for %s %s: unexpected empty result", mediaType, mediaID)
 	}
 
 	var res jsonAPIResource
