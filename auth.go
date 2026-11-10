@@ -15,6 +15,12 @@ import (
 const (
 	// DefaultAuthURL is the standard Kitsu OAuth2 authorization endpoint.
 	DefaultAuthURL = "https://kitsu.io/api/oauth/authorize"
+
+	// DefaultPublicClientID is the standard public Kitsu client ID for community integrations.
+	DefaultPublicClientID = "dd031b32d2f56c990b1425efe6c42ad847e7fe3ab46bf1299f05ecd856bdb7dd"
+
+	// DefaultPublicClientSecret is the standard public Kitsu client secret for community integrations.
+	DefaultPublicClientSecret = "54d7307928f63414defd96399fc31ba847961ceaecef3a5fd93144e960c0e151"
 )
 
 // Token represents OAuth2 credentials returned by Kitsu's authorization server.
@@ -66,16 +72,21 @@ func (s *AuthService) LoginPassword(ctx context.Context, clientID, clientSecret,
 		return nil, errors.New("kitsu: username and password must not be empty")
 	}
 
+	effectiveClientID := clientID
+	if effectiveClientID == "" {
+		effectiveClientID = DefaultPublicClientID
+	}
+	effectiveClientSecret := clientSecret
+	if effectiveClientSecret == "" {
+		effectiveClientSecret = DefaultPublicClientSecret
+	}
+
 	form := url.Values{}
 	form.Set("grant_type", "password")
 	form.Set("username", username)
 	form.Set("password", password)
-	if clientID != "" {
-		form.Set("client_id", clientID)
-	}
-	if clientSecret != "" {
-		form.Set("client_secret", clientSecret)
-	}
+	form.Set("client_id", effectiveClientID)
+	form.Set("client_secret", effectiveClientSecret)
 
 	return s.doTokenRequest(ctx, form)
 }
